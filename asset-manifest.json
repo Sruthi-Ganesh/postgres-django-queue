@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/queue-monitoring-fe/static/css/main.073c9b0a.css",
+    "main.js": "/queue-monitoring-fe/static/js/main.c8fa22be.js",
+    "static/js/787.f8e38308.chunk.js": "/queue-monitoring-fe/static/js/787.f8e38308.chunk.js",
+    "index.html": "/queue-monitoring-fe/index.html",
+    "main.073c9b0a.css.map": "/queue-monitoring-fe/static/css/main.073c9b0a.css.map",
+    "main.c8fa22be.js.map": "/queue-monitoring-fe/static/js/main.c8fa22be.js.map",
+    "787.f8e38308.chunk.js.map": "/queue-monitoring-fe/static/js/787.f8e38308.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.073c9b0a.css",
+    "static/js/main.c8fa22be.js"
+  ]
+}

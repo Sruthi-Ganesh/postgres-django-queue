@@ -1,0 +1,97 @@
+version: '3.7'
+services:
+  nginx:
+    build: ./nginx
+    container_name: dev_web
+    restart: on-failure
+    image: nginx:1.21.6
+    volumes:
+      - .:/microservice:rw
+      - static_volume:/home/app/microservice/static
+    ports:
+      - 80:80
+    depends_on:
+      - django_wsgi
+      - django_asgi
+  django_wsgi:
+    container_name: django_wsgi
+    build: .
+    command: sh -c "python manage.py makemigrations &&
+      python manage.py migrate &&
+      python manage.py initiate_admin &&
+      python manage.py collectstatic --noinput --clear &&
+      uwsgi --ini uwsgi.ini"
+    restart: on-failure
+    env_file: dev.env
+    volumes:
+      - .:/microservice:rw
+      - static_volume:/home/app/microservice/static
+    depends_on:
+      - db
+    expose:
+      - 9000
+  django_asgi:
+    container_name: django_asgi
+    build: .
+    # command: python manage.py runserver 0.0.0.0:8000
+    command: daphne -b 0.0.0.0 -p 8000 postgres_django_queue.asgi:application
+    volumes:
+      - .:/microservice:rw
+      - static_volume:/home/app/microservice/static
+    restart: on-failure
+    env_file: dev.env
+    depends_on:
+      - redis
+    expose:
+      - 8000
+  django_listen:
+    container_name: django_listen
+    build: .
+    # command: python manage.py runserver 0.0.0.0:8000
+    command: python manage.py initiate_postgres_listen
+    volumes:
+      - .:/microservice:rw
+      - static_volume:/home/app/microservice/static
+    restart: on-failure
+    env_file: dev.env
+    depends_on:
+      - django_asgi
+      - db
+      - django_wsgi
+  db:
+    container_name: dev_db
+    image: postgres:14.2-alpine
+    env_file: dev.env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    restart: on-failure
+  redis:
+    image: redis:alpine
+  celery:
+    restart: on-failure
+    build:
+      context: .
+    command: celery -A postgres_django_queue worker -l info
+    volumes:
+      - .:/microservice:rw
+    env_file: dev.env
+    depends_on:
+      - db
+      - redis
+      - app
+  celery-beat:
+    restart: on-failure
+    build:
+      context: .
+    command: celery -A postgres_django_queue beat -l info
+    volumes:
+      - .:/microservice:rw
+    env_file: dev.env
+    depends_on:
+      - db
+      - redis
+      - app
+
+volumes:
+  static_volume:
+  postgres_data:
